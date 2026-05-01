@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package raceapp;
+
+option java_multiple_files = true;
+option java_package = "grpc";
+option java_outer_classname = "AppProto";
+
+// =====================
+// COMMON MESSAGES
+// =====================
+
+message Empty {}
+
+message IdRequest {
+  int32 id = 1;
+}
+
+message PageRequest {
+  int32 pageNumber = 1;
+}
+
+message CountResponse {
+  int32 total = 1;
+}
+
+// =====================
+// USER
+// =====================
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// =====================
+// RACE
+// =====================
+
+message Race {
+  int32 id = 1;
+  string destination = 2;
+  string date = 3;
+  string time = 4;
+  repeated bool availableSeats = 5;
+}
+
+// =====================
+// RESERVATION
+// =====================
+
+message Reservation {
+  int32 id = 1;
+  int32 userId = 2;
+  int32 raceId = 3;
+  string name = 4;
+  repeated int32 seats = 5;
+}
+
+message ReservationCreateRequest {
+  int32 raceId = 1;
+  string name = 2;
+  repeated int32 seats = 3;
+}
+
+// =====================
+// SEATS
+// =====================
+
+message SeatDTO {
+  int32 seatNumber = 1;
+  string clientName = 2;
+}
+
+// =====================
+// OBSERVER EVENTS (NEW)
+// =====================
+
+message RaceEvent {
+  string type = 1; // CREATED / UPDATED / DELETED
+  Race race = 2;
+}
+
+message ReservationEvent {
+  string type = 1; // CREATED / UPDATED / DELETED
+  Reservation reservation = 2;
+}
+
+message UserEvent {
+  string type = 1;
+  User user = 2;
+}
+
+// =====================
+// SERVICES
+// =====================
+
+service RaceService {
+  rpc GetAllRaces(Empty) returns (stream Race);
+
+  rpc GetRaceById(IdRequest) returns (Race);
+  rpc SaveRace(Race) returns (Race);
+  rpc UpdateRace(Race) returns (Race);
+  rpc DeleteRace(IdRequest) returns (Empty);
+
+  rpc GetRacesPage(PageRequest) returns (stream Race);
+  rpc GetTotalRaces(Empty) returns (CountResponse);
+
+  rpc FindByDetails(Race) returns (Race);
+
+  // OBSERVER
+  rpc WatchRaces(Empty) returns (stream RaceEvent);
+}
+
+service ReservationService {
+  rpc GetAllReservations(Empty) returns (stream Reservation);
+
+  rpc GetReservationsByRace(IdRequest) returns (stream Reservation);
+  rpc GetReservationById(IdRequest) returns (Reservation);
+
+  rpc SaveReservation(Reservation) returns (Reservation);
+  rpc UpdateReservation(Reservation) returns (Reservation);
+  rpc DeleteReservation(IdRequest) returns (Empty);
+
+  rpc GetReservationsPage(PageRequest) returns (stream Reservation);
+  rpc GetTotalReservations(Empty) returns (CountResponse);
+
+  rpc GetSeatsForRace(IdRequest) returns (stream SeatDTO);
+  rpc GetFreeSeats(IdRequest) returns (stream IdRequest);
+
+  rpc CreateReservation(ReservationCreateRequest) returns (Reservation);
+
+  // OBSERVER
+  rpc WatchReservations(Empty) returns (stream ReservationEvent);
+}
+
+service UserService {
+  rpc GetAllUsers(Empty) returns (stream User);
+  rpc GetUserById(IdRequest) returns (User);
+  rpc CreateUser(User) returns (User);
+  rpc UpdateUser(User) returns (User);
+  rpc DeleteUser(IdRequest) returns (Empty);
+
+  rpc GetUserPage(PageRequest) returns (stream User);
+  rpc GetTotalUsers(Empty) returns (CountResponse);
+
+  rpc Login(LoginRequest) returns (User);
+
+  // OBSERVER
+  rpc WatchUsers(Empty) returns (stream UserEvent);
+}
+
+option csharp_namespace = "Client.Grpc";

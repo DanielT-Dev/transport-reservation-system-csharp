@@ -1,0 +1,2 @@
+obj\Debug\net10.0-windows\Protos/App.cs \
+obj\Debug\net10.0-windows\Protos/AppGrpc.cs: Protos/app.proto
